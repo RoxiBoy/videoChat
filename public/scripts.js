@@ -202,8 +202,12 @@ socket.on("offerAwaiting", async (callOffer) => {
 
   if (
     socketToCall.userName === userName &&
-    socketToCall.socketId === socket.id
+    socketToCall.socketId === socket.id 
   ) {
+    if(isInCall) {
+      socket.emit('peerBusy', callingSocket)
+      return
+    }
     if (window.confirm(`${callingSocket.userName} is calling`)) {
       partner = {
         socketId: callingSocket.socketId,
@@ -232,6 +236,7 @@ socket.on("offerAwaiting", async (callOffer) => {
       };
       didCall = false;
       socket.emit("callAnswered", answerDescription);
+      isInCall = true
     } else {
       socket.emit("callRejected", callOffer);
     }
@@ -245,6 +250,7 @@ socket.on("answerReceived", async (answerOffer) => {
     socketId: answerOffer.answerer.socketId,
     userName: answerOffer.answerer.userName
   }
+  isInCall = true
   await peerConnection.setRemoteDescription(answerOffer.answer);
 });
 
@@ -259,7 +265,9 @@ socket.on('hungup', hungUpBy => {
   hangUp()
 })
 
-
+socket.on('lineBusy', () => {
+  window.alert('The user is busy at the moment')
+})
 
 
 

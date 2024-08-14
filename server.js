@@ -96,6 +96,10 @@ io.on("connection", (socket) => {
 
   });
 
+  socket.on('peerBusy', callingSocket => {
+    socket.to(callingSocket.socketId).emit("lineBusy")
+  })
+
 });
 
 httpsServer.listen(8080, () => {
