@@ -1,15 +1,15 @@
-let userName;
-if(!localStorage.getItem(userName)){
-  userName = window.prompt("Enter user name")
-  localStorage.setItem('userName', userName)
-}else {
-  userName = localStorage.getItem(userName)
-}
-
-let isInCall = false
-
+const localUserNameEl = document.getElementById('local-name') 
+const remoteUserNameEl = document.getElementById('remote-name')
 const localVideoEl = document.getElementById("local-feed");
 const remoteVideoEl = document.getElementById("remote-feed");
+
+let userName;
+while(!userName){
+  userName = window.prompt("Enter user name");
+}
+localUserNameEl.textContent = userName 
+let isInCall = false
+
 
 const hangUpBtn = document.getElementById("hangup-button");
 
@@ -59,9 +59,11 @@ socket.on("socketListUpdated", (sockets) => {
 
 const createNewSocketEl = (newSocket) => {
   const newSocketElement = document.createElement("div");
-  newSocketElement.style.backgroundColor = "gray";
+  newSocketElement.className = 'socket'
 
   const newSocketName = document.createElement("p");
+  newSocketName.className = 'socket-name'
+
   const callBtn = document.createElement("button");
   callBtn.style.cursor = "pointer";
 
@@ -84,6 +86,13 @@ let remoteStream = new MediaStream();
 let sendIceCandidateTo;
 
 const call = async (callSocket) => {
+  if(isInCall) {
+    if(window.confirm("Do you want to end this call")){
+      hangUp()
+    }else{
+      return
+    }
+  }
   const socketToCall = {
     userName: callSocket.userName,
     socketId: callSocket.socketId,
@@ -109,7 +118,7 @@ hangUpBtn.addEventListener("click", (e) => {
 
 const hangUp = () => {
   if (peerConnection) {
-
+    
     // closing the peer connection
     peerConnection.close();
     peerConnection = null
@@ -125,7 +134,8 @@ const hangUp = () => {
       t.stop()
       localStream = null
     })
-
+    
+    remoteUserNameEl.textContent = ``
     isInCall = false
   } else {
     window.alert("not in an active call");
@@ -237,6 +247,7 @@ socket.on("offerAwaiting", async (callOffer) => {
       didCall = false;
       socket.emit("callAnswered", answerDescription);
       isInCall = true
+      remoteUserNameEl.textContent = callingSocket.userName
     } else {
       socket.emit("callRejected", callOffer);
     }
@@ -251,6 +262,7 @@ socket.on("answerReceived", async (answerOffer) => {
     userName: answerOffer.answerer.userName
   }
   isInCall = true
+  remoteUserNameEl.textContent = partner.userName 
   await peerConnection.setRemoteDescription(answerOffer.answer);
 });
 

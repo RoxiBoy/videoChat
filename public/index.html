@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,14 +11,20 @@
     <div id='sockets' class="left-column"></div>
     <div class="right-column">
         <div class="video-container">
-            <video id="local-feed" class="video" controls autoplay>
-                <source type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-            <video id="remote-feed" class="video" controls autoplay>
-                <source type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
+            <div class="video-wrapper">
+                <video id="local-feed" class="video" controls autoplay>
+                    <source type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="video-name" id="local-name"></div> <!-- Placeholder for local user name -->
+            </div>
+            <div class="video-wrapper">
+                <video id="remote-feed" class="video" controls autoplay>
+                    <source type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="video-name" id="remote-name"></div> <!-- Placeholder for remote user name -->
+            </div>
         </div>
         <div class="button-container">
             <button id="hangup-button" class="hangup-button">Hang Up</button>
