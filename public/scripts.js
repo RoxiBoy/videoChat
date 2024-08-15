@@ -34,7 +34,7 @@ const renderSockets = (connectedSocketList) => {
   });
 };
 
-const socket = io.connect("https://192.168.18.16:8080", {
+const socket = io.connect("https://localhost:8080", {
   auth: {
     userName,
   },
