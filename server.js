@@ -15,7 +15,7 @@ const httpsServer = https.createServer({ key, cert }, app);
 
 const io = new Server(httpsServer, {
   cors: {
-    origin: ["https://192.168.18.16/", "https://localhost/"],
+    origin: ["https://localhost/"],
     methods: ["GET", "POST"],
   },
 });
