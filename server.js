@@ -60,7 +60,7 @@ io.on("connection", (socket) => {
         userName: userName,
       },
     };
-    socket.broadcast.emit("offerAwaiting", callOffer);
+    socket.to(callOffer.socketToCall.socketId).emit("offerAwaiting", callOffer);
   });
 
   socket.on("callAnswered", (answerDescription) => {

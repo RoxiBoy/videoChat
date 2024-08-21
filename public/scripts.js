@@ -1,15 +1,14 @@
-const localUserNameEl = document.getElementById('local-name') 
-const remoteUserNameEl = document.getElementById('remote-name')
+const localUserNameEl = document.getElementById("local-name");
+const remoteUserNameEl = document.getElementById("remote-name");
 const localVideoEl = document.getElementById("local-feed");
 const remoteVideoEl = document.getElementById("remote-feed");
 
 let userName;
-while(!userName){
+while (!userName) {
   userName = window.prompt("Enter user name");
 }
-localUserNameEl.textContent = userName 
-let isInCall = false
-
+localUserNameEl.textContent = userName;
+let isInCall = false;
 
 const hangUpBtn = document.getElementById("hangup-button");
 
@@ -41,7 +40,7 @@ const socket = io.connect("https://localhost:8080", {
 });
 
 let connectedSockets = [];
-let partner
+let partner;
 
 socket.on("socketListUpdated", (sockets) => {
   connectedSockets = [];
@@ -59,10 +58,10 @@ socket.on("socketListUpdated", (sockets) => {
 
 const createNewSocketEl = (newSocket) => {
   const newSocketElement = document.createElement("div");
-  newSocketElement.className = 'socket'
+  newSocketElement.className = "socket";
 
   const newSocketName = document.createElement("p");
-  newSocketName.className = 'socket-name'
+  newSocketName.className = "socket-name";
 
   const callBtn = document.createElement("button");
   callBtn.style.cursor = "pointer";
@@ -86,11 +85,11 @@ let remoteStream = new MediaStream();
 let sendIceCandidateTo;
 
 const call = async (callSocket) => {
-  if(isInCall) {
-    if(window.confirm("Do you want to end this call")){
-      hangUp()
-    }else{
-      return
+  if (isInCall) {
+    if (window.confirm("Do you want to end this call")) {
+      hangUp();
+    } else {
+      return;
     }
   }
   const socketToCall = {
@@ -98,49 +97,47 @@ const call = async (callSocket) => {
     socketId: callSocket.socketId,
   };
 
-    sendIceCandidateTo = socketToCall.socketId;
-    await fetchUserMedia();
+  sendIceCandidateTo = socketToCall.socketId;
+  await fetchUserMedia();
 
-    await createPeerConnection(config);
+  await createPeerConnection(config);
 
-    await createOffer(socketToCall);
+  await createOffer(socketToCall);
 };
 
 hangUpBtn.addEventListener("click", (e) => {
   // Emitting hangup
-  if(peerConnection){
-
-    socket.emit("hangUp" , partner)
+  if (peerConnection) {
+    socket.emit("hangUp", partner);
   }
 
-  hangUp() 
+  hangUp();
 });
 
 const hangUp = () => {
   if (peerConnection) {
-    
     // closing the peer connection
     peerConnection.close();
-    peerConnection = null
+    peerConnection = null;
 
-    // stopping the streams 
+    // stopping the streams
     remoteStream.getTracks().forEach((t) => {
-      t.stop()
-      remoteStream = null
-      remoteStream = new MediaStream()
+      t.stop();
+      remoteStream = null;
+      remoteStream = new MediaStream();
     });
 
     localStream.getTracks().forEach((t) => {
-      t.stop()
-      localStream = null
-    })
-    
-    remoteUserNameEl.textContent = ``
-    isInCall = false
+      t.stop();
+      localStream = null;
+    });
+
+    remoteUserNameEl.textContent = ``;
+    isInCall = false;
   } else {
     window.alert("not in an active call");
   }
-}
+};
 
 const fetchUserMedia = () => {
   return new Promise(async (resolve, reject) => {
@@ -210,59 +207,50 @@ socket.on("offerAwaiting", async (callOffer) => {
   const socketToCall = callOffer.socketToCall;
   const callingSocket = callOffer.callingSocket;
 
-  if (
-    socketToCall.userName === userName &&
-    socketToCall.socketId === socket.id 
-  ) {
-    if(isInCall) {
-      socket.emit('peerBusy', callingSocket)
-      return
-    }
-    if (window.confirm(`${callingSocket.userName} is calling`)) {
-      partner = {
-        socketId: callingSocket.socketId,
-        userName: callingSocket.userName
-      }
-      await fetchUserMedia();
-      await createPeerConnection(config);
-      sendIceCandidateTo = callingSocket.socketId;
-      await peerConnection.setRemoteDescription(
-        new RTCSessionDescription(offer)
-      );
-      const answer = await peerConnection.createAnswer({});
-
-      await peerConnection.setLocalDescription(answer);
-
-      const answerDescription = {
-        answerFrom: {
-          userName: userName,
-          socketId: socket.id,
-        },
-        answerTo: {
-          userName: callingSocket.userName,
-          socketId: callingSocket.socketId,
-        },
-        answer: answer,
-      };
-      didCall = false;
-      socket.emit("callAnswered", answerDescription);
-      isInCall = true
-      remoteUserNameEl.textContent = callingSocket.userName
-    } else {
-      socket.emit("callRejected", callOffer);
-    }
-  } else {
+  if (isInCall) {
+    socket.emit("peerBusy", callingSocket);
     return;
+  }
+  if (window.confirm(`${callingSocket.userName} is calling`)) {
+    partner = {
+      socketId: callingSocket.socketId,
+      userName: callingSocket.userName,
+    };
+    await fetchUserMedia();
+    await createPeerConnection(config);
+    sendIceCandidateTo = callingSocket.socketId;
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+    const answer = await peerConnection.createAnswer({});
+
+    await peerConnection.setLocalDescription(answer);
+
+    const answerDescription = {
+      answerFrom: {
+        userName: userName,
+        socketId: socket.id,
+      },
+      answerTo: {
+        userName: callingSocket.userName,
+        socketId: callingSocket.socketId,
+      },
+      answer: answer,
+    };
+    didCall = false;
+    socket.emit("callAnswered", answerDescription);
+    isInCall = true;
+    remoteUserNameEl.textContent = callingSocket.userName;
+  } else {
+    socket.emit("callRejected", callOffer);
   }
 });
 
 socket.on("answerReceived", async (answerOffer) => {
   partner = {
     socketId: answerOffer.answerer.socketId,
-    userName: answerOffer.answerer.userName
-  }
-  isInCall = true
-  remoteUserNameEl.textContent = partner.userName 
+    userName: answerOffer.answerer.userName,
+  };
+  isInCall = true;
+  remoteUserNameEl.textContent = partner.userName;
   await peerConnection.setRemoteDescription(answerOffer.answer);
 });
 
@@ -272,16 +260,11 @@ socket.on("iceCandidateAdded", async (candidate) => {
   }
 });
 
-socket.on('hungup', hungUpBy => {
-  window.alert(`${hungUpBy.userName} hung up on you`)
-  hangUp()
-})
+socket.on("hungup", (hungUpBy) => {
+  window.alert(`${hungUpBy.userName} hung up on you`);
+  hangUp();
+});
 
-socket.on('lineBusy', () => {
-  window.alert('The user is busy at the moment')
-})
-
-
-
-
-
+socket.on("lineBusy", () => {
+  window.alert("The user is busy at the moment");
+});
